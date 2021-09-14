@@ -47,11 +47,11 @@ class Block {
             
             // Comparing if the hashes changed
             if (currentHash === self.hash) {
-                // Returning the Block is not valid
-                resolve(false);
-            } else {
                 // Returning the Block is valid
                 resolve(true);
+            } else {
+                // Returning the Block is not valid
+                resolve(false);
             }    
         
         });
@@ -73,13 +73,14 @@ class Block {
         let encodedData = self.body;
         
         // Decoding the data to retrieve the JSON representation of the object
+        // Decode Hex to ascii (which is readable in JS?)
         let decodedData = hex2ascii(encodedData);
 
         // Parse the data to an object to be retrieve.
         let dataObject = JSON.parse(decodedData);
 
         // Resolve with the data if the object isn't the Genesis block
-        if (this.height !== 0) {
+        if (this.height > 0) {
             return dataObject;
         } else {
             return null;
