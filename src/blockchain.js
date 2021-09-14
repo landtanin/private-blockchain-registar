@@ -118,9 +118,10 @@ class Blockchain {
             let messageTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             let timeDiff = currentTime/60 - messageTime/60 
-            if (timeDiff < 5 && bitcoinMessage.verify(message, address, signature)) {
-                let newBlock = new BlockClass(star);
-                resolve(newBlock);
+            if (timeDiff <= 5 && bitcoinMessage.verify(message, address, signature)) {
+                let newBlock = new BlockClass.Block({star:star, owner:address});
+                let resBlock = await self._addBlock(newBlock);
+                resolve(resBlock);
             } else {
                 reject();
             }
@@ -136,7 +137,12 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-           
+           let blockFound = self.chain.filter(block => block.hash === hash);
+           if (blockFound.length === 1) {
+               resolve(blockFound[0]);
+           } else {
+               resolve(null);
+           }
         });
     }
 
@@ -167,7 +173,9 @@ class Blockchain {
         let self = this;
         let stars = [];
         return new Promise((resolve, reject) => {
-            
+            let decodedBlocks = self.chain.map(b => await b.getBData());
+            stars = decodedBlocks.filter(b => b.address === address);
+            resolve(stars);
         });
     }
 
@@ -181,7 +189,8 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-            
+            errorLog = self.chain.map(b => await b.validate());
+            resolve(errorLog);
         });
     }
 
