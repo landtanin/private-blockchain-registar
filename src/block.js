@@ -42,11 +42,14 @@ class Block {
             let currentHash = self.hash;
             
             // Recalculate the hash of the Block
-            let strSelf = JSON.stringify(self);
-            self.hash = SHA256(strSelf).toString();
+            let newBlock = self;
+            newBlock.hash = null;
+            let newHash = SHA256(JSON.stringify(self)).toString();
             
             // Comparing if the hashes changed
-            if (currentHash === self.hash) {
+            console.log(currentHash);
+            console.log(newHash); 
+            if (currentHash === newHash) {
                 // Returning the Block is valid
                 resolve(true);
             } else {
@@ -67,10 +70,9 @@ class Block {
      *     or Reject with an error.
      */
     getBData() {
-        let self = this;
 
         // Getting the encoded data saved in the Block
-        let encodedData = self.body;
+        let encodedData = this.body;
         
         // Decoding the data to retrieve the JSON representation of the object
         // Decode Hex to ascii (which is readable in JS?)
@@ -82,8 +84,6 @@ class Block {
         // Resolve with the data if the object isn't the Genesis block
         if (this.height > 0) {
             return dataObject;
-        } else {
-            return null;
         }
 
     }

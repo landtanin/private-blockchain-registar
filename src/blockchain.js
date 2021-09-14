@@ -199,7 +199,10 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-            errorLog = self.chain.map(b => b.validate());
+            for (let i in self.chain) {
+                let log = await self.chain[i].validate();
+                errorLog.push(log);
+            }
             resolve(errorLog);
         });
     }
