@@ -64,11 +64,12 @@ class Blockchain {
     _addBlock(block) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            if (self.chain.height > 0) {
-                block.previousBlockHash = self.chain[self.chain.length-1].hash;
+            if (self.height >= 0) {
+                console.log(self.chain[self.height].hash);
+                block.previousBlockHash = self.chain[self.height].hash;
             }
             
-            block.time = Date().getTime().toString().slice(0, -3);
+            block.time = new Date().getTime().toString().slice(0, -3);
             block.height = self.height + 1;
 
             block.hash = SHA256(JSON.stringify(block)).toString();
@@ -173,7 +174,7 @@ class Blockchain {
         let self = this;
         let stars = [];
         return new Promise((resolve, reject) => {
-            let decodedBlocks = self.chain.map(b => await b.getBData());
+            let decodedBlocks = self.chain.map(b => b.getBData());
             stars = decodedBlocks.filter(b => b.address === address);
             resolve(stars);
         });
@@ -189,7 +190,7 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-            errorLog = self.chain.map(b => await b.validate());
+            errorLog = self.chain.map(b => b.validate());
             resolve(errorLog);
         });
     }
