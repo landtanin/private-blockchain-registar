@@ -72,9 +72,10 @@ class Blockchain {
             block.height = self.height + 1;
 
             block.hash = SHA256(JSON.stringify(block)).toString();
-            self.chain.push(block);
 
+            self.chain.push(block);
             self.height = block.height;
+
             resolve(block);
         });
     }
@@ -122,7 +123,16 @@ class Blockchain {
                 if (bitcoinMessage.verify(message, address, signature)) {
                     let newBlock = new BlockClass.Block({star:star, owner:address});
                     let resBlock = await self._addBlock(newBlock);
-                    resolve(resBlock);
+                    
+                    let validationErros = await this.validateChain();
+                    if (validationErros.length > 0) {
+                        self.chain.pop();
+                        self.height -= 1;
+                        reject(Error("Block creation error. Chain is invalid. Errors: " + validationErros));
+                    } else {
+                        resolve(resBlock);
+                    }
+                    
                 } else {
                     reject(Error("Message signature verification failed"));    
                 }
@@ -200,8 +210,17 @@ class Blockchain {
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
             for (let i in self.chain) {
-                let log = await self.chain[i].validate();
-                errorLog.push(log);
+                let isValid = await self.chain[i].validate();
+                if (i > 0) {
+                    if (!isValid) {
+                        errorLog.push("Block data" + i + " has been tampered.");
+                    }
+
+                    // check with previousBlockHash
+                    if (self.chain[i].previousBlockHash !== self.chain[i-1].hash) {
+                        errorLog.push("Incorrect previous block hash on block " + i + ".");
+                    }
+                }
             }
             resolve(errorLog);
         });
