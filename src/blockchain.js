@@ -65,7 +65,6 @@ class Blockchain {
         let self = this;
         return new Promise(async (resolve, reject) => {
             if (self.height >= 0) {
-                console.log(self.chain[self.height].hash);
                 block.previousBlockHash = self.chain[self.height].hash;
             }
             
@@ -119,12 +118,16 @@ class Blockchain {
             let messageTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             let timeDiff = currentTime/60 - messageTime/60 
-            if (timeDiff <= 5 && bitcoinMessage.verify(message, address, signature)) {
-                let newBlock = new BlockClass.Block({star:star, owner:address});
-                let resBlock = await self._addBlock(newBlock);
-                resolve(resBlock);
+            if (timeDiff <= 5) {
+                if (bitcoinMessage.verify(message, address, signature)) {
+                    let newBlock = new BlockClass.Block({star:star, owner:address});
+                    let resBlock = await self._addBlock(newBlock);
+                    resolve(resBlock);
+                } else {
+                    reject(Error("Message signature verification failed"));    
+                }
             } else {
-                reject(Error("Time passes 5 minutes or invalid message"));
+                reject(Error("Time passes 5 minutes"));
             }
         });
     }
@@ -175,11 +178,8 @@ class Blockchain {
         let stars = [];
         return new Promise((resolve, reject) => {
             let decodedBlocks = self.chain.map(b => b.getBData());
-            console.log(decodedBlocks);
-            console.log("address: " + address);
             stars = decodedBlocks.filter(b => {
                 if (b) {
-                    console.log("b.owner: " + b.owner);
                     return b.owner === address;
                 } else {
                     return false;
